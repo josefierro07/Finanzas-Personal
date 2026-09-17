@@ -455,7 +455,11 @@
         <input type="text" id="deudaNombre" placeholder="Ej: Tarjeta de crédito" required>
       </div>
       <div class="form-row">
-        <label>Saldo pendiente</label>
+        <label>Monto total de la deuda</label>
+        <input type="text" inputmode="numeric" id="deudaMontoOriginal" placeholder="$ 0">
+      </div>
+      <div class="form-row">
+        <label>Saldo pendiente actual</label>
         <input type="text" inputmode="numeric" id="deudaSaldo" placeholder="$ 0" required>
       </div>
       <div class="form-row">
@@ -463,8 +467,14 @@
         <input type="text" inputmode="numeric" id="deudaCuota" placeholder="$ 0">
       </div>
       <div class="form-row">
-        <label>Fecha de pago</label>
+        <label>Próxima fecha de pago</label>
         <input type="date" id="deudaFecha">
+      </div>
+      <div id="deudaHistorialWrap" hidden>
+        <div class="card-header-row" style="margin-bottom:6px;">
+          <label style="font-size:13px;font-weight:600;color:var(--text-muted);">Historial de pagos</label>
+        </div>
+        <div id="deudaHistorial" class="movement-list" style="margin-bottom:14px;"></div>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn-danger" id="btnEliminarDeuda" hidden>Eliminar</button>

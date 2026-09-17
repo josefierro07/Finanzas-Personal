@@ -760,24 +760,61 @@ document.getElementById('btnAportarMeta').addEventListener('click', () => {
 });
 
 /* ===================== DEUDAS ===================== */
+function addMonthsISO(iso, months) {
+  const d = parseISO(iso);
+  const target = new Date(d.getFullYear(), d.getMonth() + months, d.getDate());
+  return target.getFullYear() + '-' + pad(target.getMonth() + 1) + '-' + pad(target.getDate());
+}
+
+function debtPaidTotal(d) {
+  return (d.pagos || []).reduce((s, p) => s + p.valor, 0);
+}
+
 function renderDeudas() {
   const grid = document.getElementById('debtsGrid');
   document.getElementById('debtsEmpty').hidden = state.debts.length > 0;
   document.getElementById('deudaTotal').textContent = formatMoney(state.debts.reduce((s, d) => s + Math.max(0, d.saldo), 0));
-  grid.innerHTML = state.debts.map(d => `
+  grid.innerHTML = state.debts.map(d => {
+    const original = d.montoOriginal || (d.saldo + debtPaidTotal(d));
+    const pagado = debtPaidTotal(d);
+    const pct = original ? Math.min(100, Math.round((pagado / original) * 100)) : 0;
+    return `
     <div class="entity-card" data-debt-id="${d.id}">
       <div class="entity-card-title">💳 ${escapeHtml(d.nombre)}</div>
       <div class="entity-card-value ${d.saldo > 0 ? 'negative' : ''}">${d.saldo > 0 ? formatMoney(d.saldo) : 'Pagada ✅'}</div>
-      ${d.saldo > 0 ? `<div class="entity-card-sub">Cuota: ${formatMoney(d.cuota || 0)}${d.fecha ? ' · Vence: ' + formatDateShort(d.fecha) : ''}</div>` : ''}
-    </div>`).join('');
+      ${original ? `<div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>` : ''}
+      <div class="entity-card-sub">
+        ${original ? `${pct}% pagado de ${formatMoney(original)}` : ''}
+        ${d.saldo > 0 ? `${original ? ' · ' : ''}Cuota: ${formatMoney(d.cuota || 0)}${d.fecha ? ' · Vence: ' + formatDateShort(d.fecha) : ''}` : ''}
+      </div>
+    </div>`;
+  }).join('');
   grid.querySelectorAll('[data-debt-id]').forEach(card => {
     card.addEventListener('click', () => openDeudaModal(card.dataset.debtId));
   });
 }
 
 document.getElementById('btnNuevaDeuda').addEventListener('click', () => openDeudaModal());
+attachMoneyFormatting(document.getElementById('deudaMontoOriginal'));
 attachMoneyFormatting(document.getElementById('deudaSaldo'));
 attachMoneyFormatting(document.getElementById('deudaCuota'));
+
+function renderDeudaHistorial(d) {
+  const wrap = document.getElementById('deudaHistorialWrap');
+  const list = document.getElementById('deudaHistorial');
+  const pagos = [...(d.pagos || [])].sort((a, b) => b.fecha.localeCompare(a.fecha));
+  if (!pagos.length) { wrap.hidden = true; list.innerHTML = ''; return; }
+  wrap.hidden = false;
+  list.innerHTML = pagos.map(p => `
+    <div class="movement-row" style="cursor:default;">
+      <div class="mv-icon">💳</div>
+      <div class="mv-info">
+        <div class="mv-desc">Pago registrado</div>
+        <div class="mv-cat">${formatDateShort(p.fecha)}</div>
+      </div>
+      <div class="mv-amount expense">-${formatMoney(p.valor)}</div>
+    </div>`).join('');
+}
 
 function openDeudaModal(debtId) {
   const form = document.getElementById('formDeuda');
@@ -789,15 +826,18 @@ function openDeudaModal(debtId) {
     document.getElementById('deudaModalTitle').textContent = 'Editar deuda';
     document.getElementById('deudaId').value = d.id;
     document.getElementById('deudaNombre').value = d.nombre;
+    document.getElementById('deudaMontoOriginal').value = d.montoOriginal ? new Intl.NumberFormat('es-CO').format(d.montoOriginal) : '';
     document.getElementById('deudaSaldo').value = new Intl.NumberFormat('es-CO').format(d.saldo);
     document.getElementById('deudaCuota').value = d.cuota ? new Intl.NumberFormat('es-CO').format(d.cuota) : '';
     document.getElementById('deudaFecha').value = d.fecha || '';
     document.getElementById('btnEliminarDeuda').hidden = false;
     document.getElementById('btnPagarDeuda').hidden = d.saldo <= 0;
     document.getElementById('btnPagarDeuda').dataset.debtId = d.id;
+    renderDeudaHistorial(d);
   } else {
     document.getElementById('deudaModalTitle').textContent = 'Nueva deuda';
     document.getElementById('deudaId').value = '';
+    document.getElementById('deudaHistorialWrap').hidden = true;
   }
   openModal('modalDeuda');
 }
@@ -805,15 +845,18 @@ function openDeudaModal(debtId) {
 document.getElementById('formDeuda').addEventListener('submit', (e) => {
   e.preventDefault();
   const id = document.getElementById('deudaId').value;
+  const saldo = parseMoneyInput(document.getElementById('deudaSaldo').value);
+  const montoOriginal = parseMoneyInput(document.getElementById('deudaMontoOriginal').value);
   const data = {
     nombre: document.getElementById('deudaNombre').value.trim(),
-    saldo: parseMoneyInput(document.getElementById('deudaSaldo').value),
+    saldo,
+    montoOriginal: montoOriginal || saldo,
     cuota: parseMoneyInput(document.getElementById('deudaCuota').value),
     fecha: document.getElementById('deudaFecha').value
   };
   if (!data.nombre) return;
   if (id) { Object.assign(state.debts.find(d => d.id === id), data); toast('Deuda actualizada'); }
-  else { data.id = uid(); state.debts.push(data); toast('Deuda registrada'); }
+  else { data.id = uid(); data.pagos = []; state.debts.push(data); toast('Deuda registrada'); }
   saveState();
   closeModal('modalDeuda');
   renderAll();
@@ -832,13 +875,16 @@ document.getElementById('btnEliminarDeuda').addEventListener('click', () => {
 
 document.getElementById('btnPagarDeuda').addEventListener('click', () => {
   const debtId = document.getElementById('btnPagarDeuda').dataset.debtId;
+  const d = state.debts.find(x => x.id === debtId);
   openMontoModal('Registrar pago', 'Valor del pago', (valor) => {
-    const d = state.debts.find(x => x.id === debtId);
     d.saldo = Math.max(0, d.saldo - valor);
+    if (!d.pagos) d.pagos = [];
+    d.pagos.push({ fecha: todayISO(), valor });
+    if (d.saldo > 0 && d.cuota && d.fecha) d.fecha = addMonthsISO(d.fecha, 1);
     saveState();
     closeModal('modalDeuda');
     renderAll();
-    toast('Pago registrado');
+    toast(d.saldo <= 0 ? '¡Deuda pagada por completo! 🎉' : 'Pago registrado');
   });
 });
 
