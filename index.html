@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Mi Finanzas</title>
+<meta name="description" content="Controla tus ingresos, gastos, cuentas, presupuesto, metas y deudas en un solo lugar.">
+<meta name="theme-color" content="#0c8a6c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mi Finanzas">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== Sidebar (desktop) ===== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-icon">💰</span>
+      <span class="brand-name">Mi Finanzas</span>
+    </div>
+    <ul class="nav-list" id="navList">
+      <li data-view="inicio" class="nav-item active"><span class="nav-icon">🏠</span><span>Inicio</span></li>
+      <li data-view="movimientos" class="nav-item"><span class="nav-icon">💳</span><span>Movimientos</span></li>
+      <li data-view="cuentas" class="nav-item"><span class="nav-icon">🏦</span><span>Cuentas</span></li>
+      <li data-view="presupuesto" class="nav-item"><span class="nav-icon">📅</span><span>Presupuesto</span></li>
+      <li data-view="metas" class="nav-item"><span class="nav-icon">🎯</span><span>Metas</span></li>
+      <li data-view="deudas" class="nav-item"><span class="nav-icon">💵</span><span>Deudas</span></li>
+      <li data-view="informes" class="nav-item"><span class="nav-icon">📊</span><span>Informes</span></li>
+    </ul>
+    <div class="nav-footer">
+      <li data-view="configuracion" class="nav-item" id="navConfig"><span class="nav-icon">⚙️</span><span>Configuración</span></li>
+    </div>
+  </nav>
+
+  <!-- ===== Main content ===== -->
+  <main class="main" id="main">
+
+    <!-- INICIO -->
+    <section class="view active" id="view-inicio">
+      <header class="view-header">
+        <div>
+          <h1 id="greeting">Hola 👋</h1>
+          <p class="muted" id="monthLabel">Resumen financiero</p>
+        </div>
+        <button class="icon-btn" id="btnInstall" title="Instalar app" hidden>⬇️ Instalar</button>
+      </header>
+
+      <div class="card card-hero">
+        <div class="hero-label">SALDO TOTAL</div>
+        <div class="hero-value" id="saldoTotal">$0</div>
+        <div class="hero-sub">
+          <span>Disponible real</span>
+          <strong id="disponibleReal">$0</strong>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card stat-card">
+          <div class="stat-label">INGRESOS <span class="stat-period">este mes</span></div>
+          <div class="stat-value income" id="statIngresos">$0</div>
+          <div class="stat-trend" id="trendIngresos"></div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">GASTOS <span class="stat-period">este mes</span></div>
+          <div class="stat-value expense" id="statGastos">$0</div>
+          <div class="stat-trend" id="trendGastos"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">💡 Puedes gastar</h3>
+        <div class="spend-value" id="puedesGastar">$0</div>
+        <p class="muted">Disponible hasta fin de mes</p>
+        <div class="breakdown">
+          <div class="breakdown-row"><span>Ingresos</span><span id="bIngresos">$0</span></div>
+          <div class="breakdown-row"><span>Gastos</span><span id="bGastos">-$0</span></div>
+          <div class="breakdown-row"><span>Pagos pendientes</span><span id="bPendientes">-$0</span></div>
+          <div class="breakdown-row total"><span>Disponible</span><span id="bDisponible">$0</span></div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="qa-btn income" data-quick="ingreso"><span>＋</span>Ingreso</button>
+        <button class="qa-btn expense" data-quick="gasto"><span>－</span>Gasto</button>
+        <button class="qa-btn transfer" data-quick="transferencia"><span>⇄</span>Transferir</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title">Últimos movimientos</h3>
+          <button class="link-btn" data-view-link="movimientos">Ver todos</button>
+        </div>
+        <div id="recentMovements" class="movement-list"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Ingresos vs Gastos (6 meses)</h3>
+        <div id="homeChart"></div>
+      </div>
+    </section>
+
+    <!-- MOVIMIENTOS -->
+    <section class="view" id="view-movimientos">
+      <header class="view-header">
+        <h1>Movimientos</h1>
+        <button class="btn-primary" id="btnNuevoMovimiento">＋ Nuevo</button>
+      </header>
+      <div class="filter-row" id="movFilters">
+        <button class="chip active" data-filter="todos">Todos</button>
+        <button class="chip" data-filter="ingreso">Ingresos</button>
+        <button class="chip" data-filter="gasto">Gastos</button>
+        <button class="chip" data-filter="transferencia">Transferencias</button>
+      </div>
+      <div class="card">
+        <div id="allMovements" class="movement-list"></div>
+        <p class="empty-state" id="movEmpty" hidden>Sin movimientos todavía. Registra el primero.</p>
+      </div>
+    </section>
+
+    <!-- CUENTAS -->
+    <section class="view" id="view-cuentas">
+      <header class="view-header">
+        <h1>Cuentas</h1>
+        <button class="btn-primary" id="btnNuevaCuenta">＋ Agregar cuenta</button>
+      </header>
+      <div class="cards-grid" id="accountsGrid"></div>
+    </section>
+
+    <!-- PRESUPUESTO -->
+    <section class="view" id="view-presupuesto">
+      <header class="view-header">
+        <div>
+          <h1>Presupuesto</h1>
+          <p class="muted" id="budgetMonthLabel"></p>
+        </div>
+        <button class="btn-primary" id="btnNuevoPresupuesto">＋ Categoría</button>
+      </header>
+      <div class="card" id="budgetAlerts"></div>
+      <div id="budgetList" class="budget-list"></div>
+      <p class="empty-state" id="budgetEmpty" hidden>Aún no tienes presupuestos. Crea uno por categoría.</p>
+    </section>
+
+    <!-- METAS -->
+    <section class="view" id="view-metas">
+      <header class="view-header">
+        <h1>Metas de ahorro</h1>
+        <button class="btn-primary" id="btnNuevaMeta">＋ Nueva meta</button>
+      </header>
+      <div class="cards-grid" id="goalsGrid"></div>
+      <p class="empty-state" id="goalsEmpty" hidden>Todavía no tienes metas. Crea la primera 🎯</p>
+    </section>
+
+    <!-- DEUDAS -->
+    <section class="view" id="view-deudas">
+      <header class="view-header">
+        <h1>Deudas</h1>
+        <button class="btn-primary" id="btnNuevaDeuda">＋ Nueva deuda</button>
+      </header>
+      <div class="card">
+        <div class="breakdown-row total"><span>Deuda total</span><span id="deudaTotal">$0</span></div>
+      </div>
+      <div class="cards-grid" id="debtsGrid"></div>
+      <p class="empty-state" id="debtsEmpty" hidden>No tienes deudas registradas.</p>
+    </section>
+
+    <!-- INFORMES -->
+    <section class="view" id="view-informes">
+      <header class="view-header">
+        <h1>Informes</h1>
+      </header>
+      <div class="filter-row" id="reportFilters">
+        <button class="chip" data-range="1">Mes</button>
+        <button class="chip active" data-range="3">3 meses</button>
+        <button class="chip" data-range="6">6 meses</button>
+        <button class="chip" data-range="12">Año</button>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Ingresos vs Gastos</h3>
+        <div id="reportTrendChart"></div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Gastos por categoría</h3>
+        <div id="reportCategoryChart"></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="stat-label">AHORRO DEL PERIODO</div>
+          <div class="stat-value" id="reportAhorro">$0</div>
+          <div class="muted" id="reportAhorroPct">0% de los ingresos</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">PATRIMONIO NETO</div>
+          <div class="stat-value" id="reportPatrimonio">$0</div>
+          <div class="muted">Activos − deudas</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIGURACION -->
+    <section class="view" id="view-configuracion">
+      <header class="view-header">
+        <h1>Configuración</h1>
+      </header>
+
+      <div class="card">
+        <h3 class="card-title">Perfil</h3>
+        <div class="form-row">
+          <label>Nombre</label>
+          <input type="text" id="cfgNombre" placeholder="Tu nombre">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Moneda</h3>
+        <div class="form-row">
+          <label>Moneda</label>
+          <select id="cfgMoneda">
+            <option value="COP">Peso colombiano (COP)</option>
+            <option value="USD">Dólar (USD)</option>
+            <option value="MXN">Peso mexicano (MXN)</option>
+            <option value="EUR">Euro (EUR)</option>
+            <option value="ARS">Peso argentino (ARS)</option>
+            <option value="PEN">Sol peruano (PEN)</option>
+            <option value="CLP">Peso chileno (CLP)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title">Categorías</h3>
+          <button class="link-btn" id="btnAddCategoria">＋ Agregar</button>
+        </div>
+        <div id="categoryList" class="tag-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title">Métodos de pago</h3>
+          <button class="link-btn" id="btnAddMetodo">＋ Agregar</button>
+        </div>
+        <div id="paymentMethodList" class="tag-list"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Notificaciones</h3>
+        <label class="switch-row">
+          <span>Alertas de presupuesto</span>
+          <input type="checkbox" id="cfgAlertasPresupuesto" checked>
+        </label>
+        <label class="switch-row">
+          <span>Recordatorio de pagos próximos</span>
+          <input type="checkbox" id="cfgAlertasPagos" checked>
+        </label>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Seguridad</h3>
+        <p class="muted">Tus datos se guardan únicamente en este dispositivo (almacenamiento local).</p>
+        <button class="btn-secondary" id="btnExportar">⬇️ Exportar datos (JSON)</button>
+        <button class="btn-secondary" id="btnImportar">⬆️ Importar datos</button>
+        <input type="file" id="fileImportar" accept="application/json" hidden>
+        <button class="btn-danger" id="btnReset">🗑️ Borrar todos los datos</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== Bottom nav (mobile) ===== -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bn-item active" data-view="inicio"><span class="bn-icon">🏠</span><span>Inicio</span></button>
+    <button class="bn-item" data-view="movimientos"><span class="bn-icon">💳</span><span>Movimientos</span></button>
+    <button class="bn-fab" id="bnFab"><span>＋</span></button>
+    <button class="bn-item" data-view="informes"><span class="bn-icon">📊</span><span>Informes</span></button>
+    <button class="bn-item" data-view="configuracion"><span class="bn-icon">⚙️</span><span>Ajustes</span></button>
+  </nav>
+
+</div>
+
+<!-- ===== Modal: Movimiento ===== -->
+<div class="modal-overlay" id="modalMovimiento">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="movModalTitle">Nuevo movimiento</h2>
+      <button class="modal-close" data-close-modal="modalMovimiento">✕</button>
+    </div>
+    <form id="formMovimiento">
+      <input type="hidden" id="movId">
+      <div class="form-row">
+        <label>Tipo</label>
+        <div class="segmented" id="movTipoSeg">
+          <button type="button" class="seg-btn active" data-tipo="ingreso">Ingreso</button>
+          <button type="button" class="seg-btn" data-tipo="gasto">Gasto</button>
+          <button type="button" class="seg-btn" data-tipo="transferencia">Transferencia</button>
+        </div>
+        <input type="hidden" id="movTipo" value="ingreso">
+      </div>
+      <div class="form-row">
+        <label>Valor</label>
+        <input type="text" inputmode="numeric" id="movValor" placeholder="$ 0" required>
+      </div>
+      <div class="form-row">
+        <label>Descripción</label>
+        <input type="text" id="movDescripcion" placeholder="Ej: Salario, Mercado, Arriendo...">
+      </div>
+      <div class="form-row" id="movCategoriaRow">
+        <label>Categoría</label>
+        <select id="movCategoria"></select>
+      </div>
+      <div class="form-row" id="movCuentaRow">
+        <label id="movCuentaLabel">Cuenta</label>
+        <select id="movCuenta"></select>
+      </div>
+      <div class="form-row" id="movCuentaDestinoRow" hidden>
+        <label>Cuenta destino</label>
+        <select id="movCuentaDestino"></select>
+      </div>
+      <div class="form-row">
+        <label>Fecha</label>
+        <input type="date" id="movFecha" required>
+      </div>
+      <div class="form-row">
+        <label>Método de pago</label>
+        <select id="movMetodo"></select>
+      </div>
+      <div class="form-row">
+        <label>Nota (opcional)</label>
+        <input type="text" id="movNota" placeholder="Nota adicional">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btnEliminarMovimiento" hidden>Eliminar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Cuenta ===== -->
+<div class="modal-overlay" id="modalCuenta">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="cuentaModalTitle">Nueva cuenta</h2>
+      <button class="modal-close" data-close-modal="modalCuenta">✕</button>
+    </div>
+    <form id="formCuenta">
+      <input type="hidden" id="cuentaId">
+      <div class="form-row">
+        <label>Nombre</label>
+        <input type="text" id="cuentaNombre" placeholder="Ej: Bancolombia" required>
+      </div>
+      <div class="form-row">
+        <label>Tipo</label>
+        <select id="cuentaTipo">
+          <option value="banco">🏦 Cuenta bancaria</option>
+          <option value="efectivo">💵 Efectivo</option>
+          <option value="tarjeta">💳 Tarjeta de crédito</option>
+          <option value="otro">📦 Otra</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Saldo inicial</label>
+        <input type="text" inputmode="numeric" id="cuentaSaldo" placeholder="$ 0">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btnEliminarCuenta" hidden>Eliminar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Presupuesto ===== -->
+<div class="modal-overlay" id="modalPresupuesto">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Presupuesto por categoría</h2>
+      <button class="modal-close" data-close-modal="modalPresupuesto">✕</button>
+    </div>
+    <form id="formPresupuesto">
+      <input type="hidden" id="presupuestoId">
+      <div class="form-row">
+        <label>Categoría</label>
+        <select id="presupuestoCategoria"></select>
+      </div>
+      <div class="form-row">
+        <label>Límite mensual</label>
+        <input type="text" inputmode="numeric" id="presupuestoLimite" placeholder="$ 0" required>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btnEliminarPresupuesto" hidden>Eliminar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Meta ===== -->
+<div class="modal-overlay" id="modalMeta">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="metaModalTitle">Nueva meta</h2>
+      <button class="modal-close" data-close-modal="modalMeta">✕</button>
+    </div>
+    <form id="formMeta">
+      <input type="hidden" id="metaId">
+      <div class="form-row">
+        <label>Nombre</label>
+        <input type="text" id="metaNombre" placeholder="Ej: Comprar vivienda" required>
+      </div>
+      <div class="form-row">
+        <label>Valor objetivo</label>
+        <input type="text" inputmode="numeric" id="metaObjetivo" placeholder="$ 0" required>
+      </div>
+      <div class="form-row">
+        <label>Valor actual ahorrado</label>
+        <input type="text" inputmode="numeric" id="metaActual" placeholder="$ 0">
+      </div>
+      <div class="form-row">
+        <label>Fecha objetivo</label>
+        <input type="date" id="metaFecha">
+      </div>
+      <div class="form-row">
+        <label>Aporte mensual</label>
+        <input type="text" inputmode="numeric" id="metaAporte" placeholder="$ 0">
+      </div>
+      <div class="form-row">
+        <label>Cuenta asociada</label>
+        <select id="metaCuenta"></select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btnEliminarMeta" hidden>Eliminar</button>
+        <button type="button" class="btn-secondary" id="btnAportarMeta" hidden>＋ Registrar aporte</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Deuda ===== -->
+<div class="modal-overlay" id="modalDeuda">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="deudaModalTitle">Nueva deuda</h2>
+      <button class="modal-close" data-close-modal="modalDeuda">✕</button>
+    </div>
+    <form id="formDeuda">
+      <input type="hidden" id="deudaId">
+      <div class="form-row">
+        <label>Nombre</label>
+        <input type="text" id="deudaNombre" placeholder="Ej: Tarjeta de crédito" required>
+      </div>
+      <div class="form-row">
+        <label>Saldo pendiente</label>
+        <input type="text" inputmode="numeric" id="deudaSaldo" placeholder="$ 0" required>
+      </div>
+      <div class="form-row">
+        <label>Cuota mensual</label>
+        <input type="text" inputmode="numeric" id="deudaCuota" placeholder="$ 0">
+      </div>
+      <div class="form-row">
+        <label>Fecha de pago</label>
+        <input type="date" id="deudaFecha">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btnEliminarDeuda" hidden>Eliminar</button>
+        <button type="button" class="btn-secondary" id="btnPagarDeuda" hidden>💳 Registrar pago</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Confirmación ===== -->
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 id="confirmTitle">¿Estás seguro?</h2>
+    </div>
+    <p id="confirmMessage" class="muted"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="confirmCancel">Cancelar</button>
+      <button type="button" class="btn-danger" id="confirmAccept">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Aporte / Pago rápido ===== -->
+<div class="modal-overlay" id="modalMonto">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 id="montoTitle">Registrar aporte</h2>
+      <button class="modal-close" data-close-modal="modalMonto">✕</button>
+    </div>
+    <form id="formMonto">
+      <div class="form-row">
+        <label id="montoLabel">Valor</label>
+        <input type="text" inputmode="numeric" id="montoValor" placeholder="$ 0" required>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">Confirmar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
