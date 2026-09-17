@@ -83,6 +83,7 @@ h1, h2, h3, p { margin: 0; }
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .brand {
@@ -584,4 +585,193 @@ h1, h2, h3, p { margin: 0; }
   .hero-value { font-size: 30px; }
   .grid-2 { gap: 10px; }
   .quick-actions { gap: 8px; }
+}
+
+/* ===================== Topbar: search + alerts ===================== */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  position: relative;
+}
+.search-wrap { flex: 1; position: relative; }
+.search-wrap input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13.5px;
+  color: var(--text);
+  outline: none;
+}
+.search-wrap input:focus { border-color: var(--primary); }
+.search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 60;
+}
+.search-result-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: var(--surface-2); }
+.sr-label { font-size: 13.5px; font-weight: 600; }
+.sr-sub { font-size: 12px; color: var(--text-muted); }
+
+.bell-btn {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.badge-dot {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px; height: 16px;
+  border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 3px;
+}
+.alerts-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 300px;
+  max-width: 90vw;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  z-index: 60;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.alerts-panel-head { font-weight: 700; font-size: 14px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.alert-row { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border); }
+.alert-row:last-child { border-bottom: none; }
+.alert-row.high { color: var(--danger); }
+.alert-row.medium { color: var(--warning); }
+.alert-row.good { color: var(--income); }
+
+/* ===================== Indicators grid (Inicio) ===================== */
+.indicators-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.indicator-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ind-label { font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
+.ind-value { font-size: 15px; font-weight: 700; }
+
+.quick-actions-5 { grid-template-columns: repeat(5, 1fr); }
+.qa-btn.debt span { color: var(--transfer); }
+.qa-btn.sub span { color: var(--warning); }
+.qa-btn.save span { color: var(--income); }
+
+/* ===================== Status badges ===================== */
+.status-badge {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+.status-badge.pendiente, .status-badge.pausada { background: #fdf1e0; color: #8a5a10; }
+.status-badge.vencido { background: #fbe1e1; color: #a11f1f; }
+.status-badge.pagado, .status-badge.activa { background: var(--primary-light); color: var(--primary-dark); }
+.status-badge.cancelada { background: var(--surface-2); color: var(--text-muted); }
+@media (prefers-color-scheme: dark) {
+  .status-badge.pendiente, .status-badge.pausada { background: #2c2413; color: #eab04f; }
+  .status-badge.vencido { background: #3a1b1b; color: #f36565; }
+}
+
+/* ===================== Sheets (mobile quick actions / more menu) ===================== */
+.sheet-actions { display: flex; flex-direction: column; gap: 10px; }
+.sheet-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 14.5px;
+  cursor: pointer;
+  text-align: left;
+}
+.sheet-btn.income { color: var(--income); }
+.sheet-btn.expense { color: var(--expense); }
+.sheet-btn.debt { color: var(--transfer); }
+.sheet-btn.sub { color: var(--warning); }
+.sheet-btn.save { color: var(--income); }
+
+.more-menu { display: flex; flex-direction: column; gap: 6px; }
+.more-menu button {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--surface-2);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+}
+
+/* ===================== Calendario ===================== */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+/* ===================== Actualizar deudas del mes ===================== */
+.update-debt-row {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+}
+.update-debt-row:last-child { border-bottom: none; }
+.update-debt-name { font-weight: 700; font-size: 14.5px; margin-bottom: 4px; }
+.update-debt-nums { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+.update-debt-preview { font-size: 13px; }
+.update-debt-preview span { font-weight: 700; color: var(--text); }
+
+@media (max-width: 480px) {
+  .indicators-grid { grid-template-columns: 1fr 1fr; }
+  .quick-actions-5 { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .qa-btn span { font-size: 16px; }
+  .qa-btn { padding: 10px 2px; font-size: 10.5px; }
+  .search-wrap input { font-size: 13px; padding: 9px 12px; }
+  .topbar { gap: 6px; }
 }

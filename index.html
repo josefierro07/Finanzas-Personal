@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Mi Finanzas</title>
-<meta name="description" content="Controla tus ingresos, gastos, cuentas, presupuesto, metas y deudas en un solo lugar.">
+<meta name="description" content="Controla ingresos, gastos, cuentas, deudas, suscripciones, presupuesto, metas y patrimonio en un solo lugar.">
 <meta name="theme-color" content="#0c8a6c">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
@@ -27,9 +27,15 @@
       <li data-view="inicio" class="nav-item active"><span class="nav-icon">🏠</span><span>Inicio</span></li>
       <li data-view="movimientos" class="nav-item"><span class="nav-icon">💳</span><span>Movimientos</span></li>
       <li data-view="cuentas" class="nav-item"><span class="nav-icon">🏦</span><span>Cuentas</span></li>
-      <li data-view="presupuesto" class="nav-item"><span class="nav-icon">📅</span><span>Presupuesto</span></li>
-      <li data-view="metas" class="nav-item"><span class="nav-icon">🎯</span><span>Metas</span></li>
-      <li data-view="deudas" class="nav-item"><span class="nav-icon">💵</span><span>Deudas</span></li>
+      <li data-view="ingresos" class="nav-item"><span class="nav-icon">💵</span><span>Ingresos</span></li>
+      <li data-view="gastos" class="nav-item"><span class="nav-icon">💸</span><span>Gastos</span></li>
+      <li data-view="obligaciones" class="nav-item"><span class="nav-icon">📅</span><span>Pagos y obligaciones</span></li>
+      <li data-view="deudas" class="nav-item"><span class="nav-icon">💳</span><span>Deudas</span></li>
+      <li data-view="suscripciones" class="nav-item"><span class="nav-icon">🔄</span><span>Suscripciones</span></li>
+      <li data-view="metas" class="nav-item"><span class="nav-icon">🎯</span><span>Metas de ahorro</span></li>
+      <li data-view="presupuesto" class="nav-item"><span class="nav-icon">📊</span><span>Presupuesto</span></li>
+      <li data-view="patrimonio" class="nav-item"><span class="nav-icon">📈</span><span>Patrimonio</span></li>
+      <li data-view="calendario" class="nav-item"><span class="nav-icon">📅</span><span>Calendario</span></li>
       <li data-view="informes" class="nav-item"><span class="nav-icon">📊</span><span>Informes</span></li>
     </ul>
     <div class="nav-footer">
@@ -39,6 +45,19 @@
 
   <!-- ===== Main content ===== -->
   <main class="main" id="main">
+
+    <!-- Utility topbar: search + alerts -->
+    <div class="topbar">
+      <div class="search-wrap">
+        <input type="text" id="globalSearch" placeholder="🔎 Buscar movimientos, deudas, suscripciones..." autocomplete="off">
+        <div class="search-results" id="searchResults" hidden></div>
+      </div>
+      <button class="bell-btn" id="btnAlerts">🔔<span class="badge-dot" id="alertsBadge" hidden>0</span></button>
+      <div class="alerts-panel" id="alertsPanel" hidden>
+        <div class="alerts-panel-head">Alertas</div>
+        <div id="alertsList"></div>
+      </div>
+    </div>
 
     <!-- INICIO -->
     <section class="view active" id="view-inicio">
@@ -50,44 +69,53 @@
         <button class="icon-btn" id="btnInstall" title="Instalar app" hidden>⬇️ Instalar</button>
       </header>
 
-      <div class="card card-hero">
-        <div class="hero-label">SALDO TOTAL</div>
-        <div class="hero-value" id="saldoTotal">$0</div>
-        <div class="hero-sub">
-          <span>Disponible real</span>
-          <strong id="disponibleReal">$0</strong>
-        </div>
-      </div>
-
       <div class="grid-2">
         <div class="card stat-card">
-          <div class="stat-label">INGRESOS <span class="stat-period">este mes</span></div>
+          <div class="stat-label">💰 SALDO TOTAL</div>
+          <div class="stat-value" id="saldoTotal">$0</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">💡 DISPONIBLE REAL</div>
+          <div class="stat-value" id="disponibleReal">$0</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">💵 INGRESOS <span class="stat-period">mes</span></div>
           <div class="stat-value income" id="statIngresos">$0</div>
           <div class="stat-trend" id="trendIngresos"></div>
         </div>
         <div class="card stat-card">
-          <div class="stat-label">GASTOS <span class="stat-period">este mes</span></div>
+          <div class="stat-label">💸 GASTOS <span class="stat-period">mes</span></div>
           <div class="stat-value expense" id="statGastos">$0</div>
           <div class="stat-trend" id="trendGastos"></div>
         </div>
       </div>
 
       <div class="card">
-        <h3 class="card-title">💡 Puedes gastar</h3>
-        <div class="spend-value" id="puedesGastar">$0</div>
-        <p class="muted">Disponible hasta fin de mes</p>
+        <h3 class="card-title">💡 Disponible real — ¿de dónde sale este valor?</h3>
         <div class="breakdown">
-          <div class="breakdown-row"><span>Ingresos</span><span id="bIngresos">$0</span></div>
-          <div class="breakdown-row"><span>Gastos</span><span id="bGastos">-$0</span></div>
-          <div class="breakdown-row"><span>Pagos pendientes</span><span id="bPendientes">-$0</span></div>
-          <div class="breakdown-row total"><span>Disponible</span><span id="bDisponible">$0</span></div>
+          <div class="breakdown-row"><span>Saldo actual</span><span id="drSaldo">$0</span></div>
+          <div class="breakdown-row"><span>Pagos próximos (obligaciones)</span><span id="drObligaciones">-$0</span></div>
+          <div class="breakdown-row"><span>Cuotas de deudas</span><span id="drDeudas">-$0</span></div>
+          <div class="breakdown-row"><span>Suscripciones del mes</span><span id="drSuscripciones">-$0</span></div>
+          <div class="breakdown-row total"><span>Disponible real</span><span id="drTotal">$0</span></div>
         </div>
       </div>
 
-      <div class="quick-actions">
-        <button class="qa-btn income" data-quick="ingreso"><span>＋</span>Ingreso</button>
-        <button class="qa-btn expense" data-quick="gasto"><span>－</span>Gasto</button>
-        <button class="qa-btn transfer" data-quick="transferencia"><span>⇄</span>Transferir</button>
+      <div class="indicators-grid">
+        <div class="indicator-chip"><span class="ind-label">Ahorro del mes</span><span class="ind-value" id="indAhorro">$0</span></div>
+        <div class="indicator-chip"><span class="ind-label">Deudas pendientes</span><span class="ind-value" id="indDeudas">$0</span></div>
+        <div class="indicator-chip"><span class="ind-label">Pagos próximos</span><span class="ind-value" id="indPagos">$0</span></div>
+        <div class="indicator-chip"><span class="ind-label">Suscripciones del mes</span><span class="ind-value" id="indSuscripciones">$0</span></div>
+        <div class="indicator-chip"><span class="ind-label">Presupuesto utilizado</span><span class="ind-value" id="indPresupuesto">0%</span></div>
+        <div class="indicator-chip"><span class="ind-label">Patrimonio</span><span class="ind-value" id="indPatrimonio">$0</span></div>
+      </div>
+
+      <div class="quick-actions quick-actions-5">
+        <button class="qa-btn income" data-quick-action="ingreso"><span>＋</span>Ingreso</button>
+        <button class="qa-btn expense" data-quick-action="gasto"><span>－</span>Gasto</button>
+        <button class="qa-btn debt" data-quick-action="deuda"><span>💳</span>Deuda</button>
+        <button class="qa-btn sub" data-quick-action="suscripcion"><span>🔄</span>Suscripción</button>
+        <button class="qa-btn save" data-quick-action="ahorro"><span>💰</span>Ahorro</button>
       </div>
 
       <div class="card">
@@ -131,6 +159,113 @@
       <div class="cards-grid" id="accountsGrid"></div>
     </section>
 
+    <!-- INGRESOS (recurrentes) -->
+    <section class="view" id="view-ingresos">
+      <header class="view-header">
+        <h1>Ingresos recurrentes</h1>
+        <button class="btn-primary" id="btnNuevoIngresoRec">＋ Nuevo</button>
+      </header>
+      <p class="muted">Configura tus ingresos fijos (salario, honorarios, etc.). El registro real de cada pago se hace en Movimientos; aquí solo llevas el control de cuándo se espera el próximo.</p>
+      <div id="recurringIncomesList" class="cards-grid"></div>
+      <p class="empty-state" id="recIncomeEmpty" hidden>No tienes ingresos recurrentes configurados.</p>
+    </section>
+
+    <!-- GASTOS (categorías) -->
+    <section class="view" id="view-gastos">
+      <header class="view-header">
+        <div>
+          <h1>Gastos por categoría</h1>
+          <p class="muted" id="gastosMonthLabel"></p>
+        </div>
+        <button class="btn-primary" id="btnNuevoGastoDesdeGastos">＋ Gasto</button>
+      </header>
+      <div class="card">
+        <div id="gastosCategoryChart"></div>
+        <p class="empty-state" id="gastosEmpty" hidden>Sin gastos este mes todavía.</p>
+      </div>
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title">Categorías de gasto</h3>
+          <button class="link-btn" id="btnAddCategoriaGasto">＋ Agregar</button>
+        </div>
+        <div id="gastoCategoryTags" class="tag-list"></div>
+      </div>
+    </section>
+
+    <!-- PAGOS Y OBLIGACIONES -->
+    <section class="view" id="view-obligaciones">
+      <header class="view-header">
+        <h1>Pagos y obligaciones</h1>
+        <button class="btn-primary" id="btnNuevaObligacion">＋ Nueva</button>
+      </header>
+      <div class="filter-row" id="obligFilters">
+        <button class="chip active" data-filter="todos">Todos</button>
+        <button class="chip" data-filter="pendiente">Pendientes</button>
+        <button class="chip" data-filter="vencido">Vencidos</button>
+        <button class="chip" data-filter="pagado">Pagados</button>
+      </div>
+      <div class="card">
+        <div id="obligacionesList" class="movement-list"></div>
+        <p class="empty-state" id="obligEmpty" hidden>No tienes pagos u obligaciones registradas.</p>
+      </div>
+    </section>
+
+    <!-- DEUDAS -->
+    <section class="view" id="view-deudas">
+      <header class="view-header">
+        <h1>Deudas</h1>
+        <button class="btn-primary" id="btnNuevaDeuda">＋ Nueva deuda</button>
+      </header>
+      <div class="card">
+        <div class="breakdown-row total"><span>Deuda total</span><span id="deudaTotal">$0</span></div>
+      </div>
+      <button class="btn-secondary" id="btnActualizarDeudasMes" style="width:100%;">📅 Actualizar deudas del mes</button>
+      <div class="cards-grid" id="debtsGrid"></div>
+      <p class="empty-state" id="debtsEmpty" hidden>No tienes deudas registradas.</p>
+    </section>
+
+    <!-- SUSCRIPCIONES -->
+    <section class="view" id="view-suscripciones">
+      <header class="view-header">
+        <h1>Suscripciones</h1>
+        <button class="btn-primary" id="btnNuevaSuscripcion">＋ Nueva</button>
+      </header>
+      <div class="grid-2">
+        <div class="card stat-card">
+          <div class="stat-label">ACTIVAS</div>
+          <div class="stat-value" id="subActivasCount">0</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">COSTO MENSUAL</div>
+          <div class="stat-value" id="subCostoMensual">$0</div>
+        </div>
+      </div>
+      <div class="card stat-card" style="margin-bottom:14px;">
+        <div class="stat-label">COSTO ANUAL ESTIMADO</div>
+        <div class="stat-value" id="subCostoAnual">$0</div>
+      </div>
+      <div class="filter-row" id="subFilters">
+        <button class="chip active" data-filter="activa">Activas</button>
+        <button class="chip" data-filter="pausada">Pausadas</button>
+        <button class="chip" data-filter="cancelada">Canceladas</button>
+        <button class="chip" data-filter="todos">Todas</button>
+      </div>
+      <div class="card">
+        <div id="subscriptionsList" class="movement-list"></div>
+        <p class="empty-state" id="subEmpty" hidden>No tienes suscripciones registradas.</p>
+      </div>
+    </section>
+
+    <!-- METAS -->
+    <section class="view" id="view-metas">
+      <header class="view-header">
+        <h1>Metas de ahorro</h1>
+        <button class="btn-primary" id="btnNuevaMeta">＋ Nueva meta</button>
+      </header>
+      <div class="cards-grid" id="goalsGrid"></div>
+      <p class="empty-state" id="goalsEmpty" hidden>Todavía no tienes metas. Crea la primera 🎯</p>
+    </section>
+
     <!-- PRESUPUESTO -->
     <section class="view" id="view-presupuesto">
       <header class="view-header">
@@ -145,27 +280,53 @@
       <p class="empty-state" id="budgetEmpty" hidden>Aún no tienes presupuestos. Crea uno por categoría.</p>
     </section>
 
-    <!-- METAS -->
-    <section class="view" id="view-metas">
+    <!-- PATRIMONIO -->
+    <section class="view" id="view-patrimonio">
       <header class="view-header">
-        <h1>Metas de ahorro</h1>
-        <button class="btn-primary" id="btnNuevaMeta">＋ Nueva meta</button>
+        <h1>Patrimonio</h1>
+        <button class="btn-primary" id="btnNuevoActivo">＋ Otro activo</button>
       </header>
-      <div class="cards-grid" id="goalsGrid"></div>
-      <p class="empty-state" id="goalsEmpty" hidden>Todavía no tienes metas. Crea la primera 🎯</p>
+      <div class="card card-hero">
+        <div class="hero-label">PATRIMONIO NETO</div>
+        <div class="hero-value" id="patrimonioTotal">$0</div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Activos</h3>
+        <div class="breakdown" id="activosBreakdown"></div>
+        <div class="breakdown-row total"><span>Total activos</span><span id="activosTotal">$0</span></div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Deudas</h3>
+        <div class="breakdown" id="pasivosBreakdown"></div>
+        <div class="breakdown-row total"><span>Total deudas</span><span id="pasivosTotal">$0</span></div>
+      </div>
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title">Otros activos registrados</h3>
+        </div>
+        <div id="assetsList" class="movement-list"></div>
+        <p class="empty-state" id="assetsEmpty" hidden>No tienes otros activos (inversiones, propiedades, vehículos) registrados.</p>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Evolución del patrimonio</h3>
+        <div id="patrimonioChart"></div>
+      </div>
     </section>
 
-    <!-- DEUDAS -->
-    <section class="view" id="view-deudas">
+    <!-- CALENDARIO -->
+    <section class="view" id="view-calendario">
       <header class="view-header">
-        <h1>Deudas</h1>
-        <button class="btn-primary" id="btnNuevaDeuda">＋ Nueva deuda</button>
+        <h1>Calendario financiero</h1>
       </header>
-      <div class="card">
-        <div class="breakdown-row total"><span>Deuda total</span><span id="deudaTotal">$0</span></div>
+      <div class="cal-nav">
+        <button class="icon-btn" id="calPrev">‹ Anterior</button>
+        <strong id="calMonthLabel"></strong>
+        <button class="icon-btn" id="calNext">Siguiente ›</button>
       </div>
-      <div class="cards-grid" id="debtsGrid"></div>
-      <p class="empty-state" id="debtsEmpty" hidden>No tienes deudas registradas.</p>
+      <div class="card">
+        <div id="calendarList" class="movement-list"></div>
+        <p class="empty-state" id="calEmpty" hidden>No hay eventos financieros este mes.</p>
+      </div>
     </section>
 
     <!-- INFORMES -->
@@ -197,6 +358,16 @@
           <div class="stat-label">PATRIMONIO NETO</div>
           <div class="stat-value" id="reportPatrimonio">$0</div>
           <div class="muted">Activos − deudas</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">DEUDAS PAGADAS</div>
+          <div class="stat-value" id="reportDeudasPagadas">$0</div>
+          <div class="muted">En el periodo</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">SUSCRIPCIONES</div>
+          <div class="stat-value" id="reportSuscripciones">$0</div>
+          <div class="muted">Pagadas en el periodo</div>
         </div>
       </div>
     </section>
@@ -262,7 +433,8 @@
       <div class="card">
         <h3 class="card-title">Seguridad</h3>
         <p class="muted">Tus datos se guardan únicamente en este dispositivo (almacenamiento local).</p>
-        <button class="btn-secondary" id="btnExportar">⬇️ Exportar datos (JSON)</button>
+        <button class="btn-secondary" id="btnExportar">⬇️ Exportar JSON</button>
+        <button class="btn-secondary" id="btnExportarCSV">⬇️ Exportar movimientos (CSV)</button>
         <button class="btn-secondary" id="btnImportar">⬆️ Importar datos</button>
         <input type="file" id="fileImportar" accept="application/json" hidden>
         <button class="btn-danger" id="btnReset">🗑️ Borrar todos los datos</button>
@@ -277,9 +449,49 @@
     <button class="bn-item" data-view="movimientos"><span class="bn-icon">💳</span><span>Movimientos</span></button>
     <button class="bn-fab" id="bnFab"><span>＋</span></button>
     <button class="bn-item" data-view="informes"><span class="bn-icon">📊</span><span>Informes</span></button>
-    <button class="bn-item" data-view="configuracion"><span class="bn-icon">⚙️</span><span>Ajustes</span></button>
+    <button class="bn-item" id="bnMore"><span class="bn-icon">☰</span><span>Más</span></button>
   </nav>
 
+</div>
+
+<!-- ===== Sheet: Acciones rápidas (móvil "+") ===== -->
+<div class="modal-overlay" id="sheetQuickActions">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>¿Qué deseas registrar?</h2>
+      <button class="modal-close" data-close-modal="sheetQuickActions">✕</button>
+    </div>
+    <div class="sheet-actions">
+      <button class="sheet-btn income" data-quick-action="ingreso">＋ Ingreso</button>
+      <button class="sheet-btn expense" data-quick-action="gasto">－ Gasto</button>
+      <button class="sheet-btn debt" data-quick-action="deuda">💳 Deuda</button>
+      <button class="sheet-btn sub" data-quick-action="suscripcion">🔄 Suscripción</button>
+      <button class="sheet-btn save" data-quick-action="ahorro">💰 Ahorro</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Sheet: Más secciones (móvil ☰) ===== -->
+<div class="modal-overlay" id="sheetMore">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Más secciones</h2>
+      <button class="modal-close" data-close-modal="sheetMore">✕</button>
+    </div>
+    <div class="more-menu" id="moreMenuList">
+      <button data-view="cuentas">🏦 Cuentas</button>
+      <button data-view="ingresos">💵 Ingresos</button>
+      <button data-view="gastos">💸 Gastos</button>
+      <button data-view="obligaciones">📅 Pagos y obligaciones</button>
+      <button data-view="deudas">💳 Deudas</button>
+      <button data-view="suscripciones">🔄 Suscripciones</button>
+      <button data-view="metas">🎯 Metas de ahorro</button>
+      <button data-view="presupuesto">📊 Presupuesto</button>
+      <button data-view="patrimonio">📈 Patrimonio</button>
+      <button data-view="calendario">📅 Calendario</button>
+      <button data-view="configuracion">⚙️ Configuración</button>
+    </div>
+  </div>
 </div>
 
 <!-- ===== Modal: Movimiento ===== -->
@@ -357,8 +569,11 @@
         <label>Tipo</label>
         <select id="cuentaTipo">
           <option value="banco">🏦 Cuenta bancaria</option>
+          <option value="ahorros">🏦 Cuenta de ahorros</option>
           <option value="efectivo">💵 Efectivo</option>
           <option value="tarjeta">💳 Tarjeta de crédito</option>
+          <option value="digital">📱 Cuenta digital</option>
+          <option value="inversion">📈 Inversión</option>
           <option value="otro">📦 Otra</option>
         </select>
       </div>
@@ -368,6 +583,48 @@
       </div>
       <div class="modal-actions">
         <button type="button" class="btn-danger" id="btnEliminarCuenta" hidden>Eliminar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Ingreso recurrente ===== -->
+<div class="modal-overlay" id="modalIngresoRec">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="ingresoRecModalTitle">Nuevo ingreso recurrente</h2>
+      <button class="modal-close" data-close-modal="modalIngresoRec">✕</button>
+    </div>
+    <form id="formIngresoRec">
+      <input type="hidden" id="ingRecId">
+      <div class="form-row">
+        <label>Nombre</label>
+        <input type="text" id="ingRecNombre" placeholder="Ej: Salario" required>
+      </div>
+      <div class="form-row">
+        <label>Valor</label>
+        <input type="text" inputmode="numeric" id="ingRecValor" placeholder="$ 0" required>
+      </div>
+      <div class="form-row">
+        <label>Frecuencia</label>
+        <select id="ingRecFrecuencia">
+          <option value="mensual">Mensual</option>
+          <option value="semanal">Semanal</option>
+          <option value="anual">Anual</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Próxima fecha de ingreso</label>
+        <input type="date" id="ingRecFecha" required>
+      </div>
+      <div class="form-row">
+        <label>Cuenta</label>
+        <select id="ingRecCuenta"></select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btnEliminarIngresoRec" hidden>Eliminar</button>
+        <button type="button" class="btn-secondary" id="btnRegistrarIngresoRec" hidden>＋ Registrar ahora</button>
         <button type="submit" class="btn-primary">Guardar</button>
       </div>
     </form>
@@ -431,6 +688,7 @@
       <div class="form-row">
         <label>Cuenta asociada</label>
         <select id="metaCuenta"></select>
+        <span class="field-hint">Si eliges una cuenta, cada aporte se descontará de su saldo.</span>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn-danger" id="btnEliminarMeta" hidden>Eliminar</button>
@@ -455,6 +713,22 @@
         <input type="text" id="deudaNombre" placeholder="Ej: Tarjeta de crédito" required>
       </div>
       <div class="form-row">
+        <label>Tipo</label>
+        <select id="deudaTipo">
+          <option value="tarjeta">Tarjeta de crédito</option>
+          <option value="credito_bancario">Crédito bancario</option>
+          <option value="prestamo_personal">Préstamo personal</option>
+          <option value="vehiculo">Crédito de vehículo</option>
+          <option value="hipotecario">Crédito hipotecario</option>
+          <option value="familiar">Préstamo familiar</option>
+          <option value="otro">Otra</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Entidad / acreedor (opcional)</label>
+        <input type="text" id="deudaAcreedor" placeholder="Ej: Bancolombia">
+      </div>
+      <div class="form-row">
         <label>Monto total de la deuda</label>
         <input type="text" inputmode="numeric" id="deudaMontoOriginal" placeholder="$ 0">
       </div>
@@ -463,13 +737,26 @@
         <input type="text" inputmode="numeric" id="deudaSaldo" placeholder="$ 0" required>
       </div>
       <div class="form-row">
+        <label>Tasa de interés mensual % (opcional)</label>
+        <input type="text" inputmode="decimal" id="deudaTasa" placeholder="Ej: 1.5">
+      </div>
+      <div class="form-row">
         <label>Cuota mensual</label>
         <input type="text" inputmode="numeric" id="deudaCuota" placeholder="$ 0" required>
         <span class="field-hint">Este valor se suma a "Pagos pendientes" en Inicio. Si no tiene cuota fija, escribe 0.</span>
       </div>
       <div class="form-row">
+        <label>Número de cuotas (opcional)</label>
+        <input type="text" inputmode="numeric" id="deudaNumCuotas" placeholder="Ej: 36">
+      </div>
+      <div class="form-row">
         <label>Próxima fecha de pago</label>
         <input type="date" id="deudaFecha">
+      </div>
+      <div class="form-row">
+        <label>Cuenta de pago</label>
+        <select id="deudaCuentaPago"></select>
+        <span class="field-hint">De aquí se descuentan los pagos que registres.</span>
       </div>
       <div id="deudaHistorialWrap" hidden>
         <div class="card-header-row" style="margin-bottom:6px;">
@@ -477,9 +764,160 @@
         </div>
         <div id="deudaHistorial" class="movement-list" style="margin-bottom:14px;"></div>
       </div>
+      <div id="deudaEvolucionWrap" hidden style="margin-bottom:14px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-muted);">Evolución del saldo</label>
+        <div id="deudaEvolucionChart"></div>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn-danger" id="btnEliminarDeuda" hidden>Eliminar</button>
         <button type="button" class="btn-secondary" id="btnPagarDeuda" hidden>💳 Registrar pago</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Actualizar deudas del mes ===== -->
+<div class="modal-overlay" id="modalActualizarDeudas">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📅 Actualizar deudas del mes</h2>
+      <button class="modal-close" data-close-modal="modalActualizarDeudas">✕</button>
+    </div>
+    <div id="actualizarDeudasList"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" id="btnConfirmarActualizarDeudas">ACTUALIZAR MES</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Suscripción ===== -->
+<div class="modal-overlay" id="modalSuscripcion">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="subModalTitle">Nueva suscripción</h2>
+      <button class="modal-close" data-close-modal="modalSuscripcion">✕</button>
+    </div>
+    <form id="formSuscripcion">
+      <input type="hidden" id="subId">
+      <div class="form-row">
+        <label>Nombre</label>
+        <input type="text" id="subNombre" placeholder="Ej: Netflix" required>
+      </div>
+      <div class="form-row">
+        <label>Categoría</label>
+        <input type="text" id="subCategoria" placeholder="Ej: Entretenimiento">
+      </div>
+      <div class="form-row">
+        <label>Valor</label>
+        <input type="text" inputmode="numeric" id="subValor" placeholder="$ 0" required>
+      </div>
+      <div class="form-row">
+        <label>Frecuencia</label>
+        <select id="subFrecuencia">
+          <option value="mensual">Mensual</option>
+          <option value="anual">Anual</option>
+          <option value="semanal">Semanal</option>
+          <option value="personalizada">Personalizada (días)</option>
+        </select>
+      </div>
+      <div class="form-row" id="subDiasRow" hidden>
+        <label>Cada cuántos días</label>
+        <input type="text" inputmode="numeric" id="subDias" placeholder="Ej: 15">
+      </div>
+      <div class="form-row">
+        <label>Próxima fecha de cobro</label>
+        <input type="date" id="subFecha" required>
+      </div>
+      <div class="form-row">
+        <label>Cuenta</label>
+        <select id="subCuenta"></select>
+      </div>
+      <div class="form-row">
+        <label>Método de pago</label>
+        <select id="subMetodo"></select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btnEliminarSuscripcion" hidden>Eliminar</button>
+        <button type="button" class="btn-secondary" id="btnPausarSuscripcion" hidden>⏸ Pausar</button>
+        <button type="button" class="btn-secondary" id="btnCancelarSuscripcion" hidden>✕ Cancelar</button>
+        <button type="button" class="btn-secondary" id="btnPagarSuscripcion" hidden>💳 Registrar pago</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Obligación / Pago ===== -->
+<div class="modal-overlay" id="modalObligacion">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="obligModalTitle">Nuevo pago u obligación</h2>
+      <button class="modal-close" data-close-modal="modalObligacion">✕</button>
+    </div>
+    <form id="formObligacion">
+      <input type="hidden" id="obligId">
+      <div class="form-row">
+        <label>Nombre</label>
+        <input type="text" id="obligNombre" placeholder="Ej: Arriendo, Internet, Seguro..." required>
+      </div>
+      <div class="form-row">
+        <label>Categoría</label>
+        <input type="text" id="obligCategoria" placeholder="Ej: Vivienda">
+      </div>
+      <div class="form-row">
+        <label>Valor</label>
+        <input type="text" inputmode="numeric" id="obligValor" placeholder="$ 0" required>
+      </div>
+      <div class="form-row">
+        <label>Fecha de pago</label>
+        <input type="date" id="obligFecha" required>
+      </div>
+      <div class="form-row">
+        <label>Cuenta de pago</label>
+        <select id="obligCuenta"></select>
+      </div>
+      <label class="switch-row">
+        <span>Se repite cada mes</span>
+        <input type="checkbox" id="obligRecurrente">
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btnEliminarObligacion" hidden>Eliminar</button>
+        <button type="button" class="btn-secondary" id="btnPagarObligacion" hidden>✓ Marcar como pagado</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Otro activo (patrimonio) ===== -->
+<div class="modal-overlay" id="modalActivo">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="activoModalTitle">Nuevo activo</h2>
+      <button class="modal-close" data-close-modal="modalActivo">✕</button>
+    </div>
+    <form id="formActivo">
+      <input type="hidden" id="activoId">
+      <div class="form-row">
+        <label>Nombre</label>
+        <input type="text" id="activoNombre" placeholder="Ej: Apartamento, Carro, Acciones..." required>
+      </div>
+      <div class="form-row">
+        <label>Tipo</label>
+        <select id="activoTipo">
+          <option value="inversion">📈 Inversión</option>
+          <option value="propiedad">🏠 Propiedad</option>
+          <option value="vehiculo">🚗 Vehículo</option>
+          <option value="otro">📦 Otro</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Valor estimado</label>
+        <input type="text" inputmode="numeric" id="activoValor" placeholder="$ 0" required>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btnEliminarActivo" hidden>Eliminar</button>
         <button type="submit" class="btn-primary">Guardar</button>
       </div>
     </form>
